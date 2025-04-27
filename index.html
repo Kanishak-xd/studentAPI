@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .student-list {
+            margin-top: 20px;
+        }
+
+        .student-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input,
+        button {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Student API Test</h1>
+
+    <h2>Add New Student</h2>
+    <form id="addStudentForm">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="number" id="age" placeholder="Age" required>
+        <input type="text" id="grade" placeholder="Grade" required>
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h2>Students List</h2>
+    <div id="studentList" class="student-list"></div>
+
+    <script>
+        // Fetch all students
+        async function fetchStudents() {
+            const response = await fetch('http://localhost:3000/api/students');
+            const students = await response.json();
+            displayStudents(students);
+        }
+
+        // Display students in the list
+        function displayStudents(students) {
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            students.forEach(student => {
+                const div = document.createElement('div');
+                div.className = 'student-item';
+                div.innerHTML = `
+                    <strong>${student.name}</strong> (Age: ${student.age}, Grade: ${student.grade})
+                    <button onclick="deleteStudent(${student.id})">Delete</button>
+                `;
+                studentList.appendChild(div);
+            });
+        }
+
+        // Add new student
+        document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const student = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                grade: document.getElementById('grade').value
+            };
+
+            await fetch('http://localhost:3000/api/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(student)
+            });
+
+            fetchStudents();
+            e.target.reset();
+        });
+
+        // Delete student
+        async function deleteStudent(id) {
+            await fetch(`http://localhost:3000/api/students/${id}`, {
+                method: 'DELETE'
+            });
+            fetchStudents();
+        }
+
+        // Initial load
+        fetchStudents();
+    </script>
+</body>
+
+</html>
